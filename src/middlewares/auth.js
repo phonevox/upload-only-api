@@ -1,29 +1,40 @@
 import { prisma } from '../prisma/client.js'
 import { logging } from '../utils/logging/index.js'
+import { verifyToken } from '../utils/jwt/index.js'
 
 export async function requireAuth(req, reply) {
-    const authLogger = logging.getLogger(req.logger.name + '.requireAuth')
+    const logger = logging.getLogger(`${req?.logger?.name}.requireAuth`)
     const authHeader = req.headers['authorization']
 
     if (!authHeader?.startsWith('Bearer ')) {
-        authLogger.warn('No token provided for authentication')
+        logger.warn('No token provided for authentication')
         return reply.code(401).send({ message: 'No token provided' })
     }
 
     const token = authHeader.split(' ')[1]
-    const user = await prisma.user.findUnique({
-        where: { token }
-    })
-    if (!user) {
-        authLogger.warn('User not found in database')
-        return reply.code(401).send({ message: 'Invalid token' })
-    }
 
-    // anexando o usuário à requisição
-    req.user = {
-        id: user.id,
-        name: user.name,
-        role: user.role
+    try {
+        // Valida o token (pode lançar erro)
+        verifyToken(token)
+
+        // Busca o usuário no banco
+        const user = await prisma.user.findUnique({ where: { token } })
+
+        if (!user) {
+            logger.warn('User not found in database')
+            return reply.code(401).send({ message: 'Invalid token' })
+        }
+
+        // Anexa o usuário à requisição
+        req.user = {
+            id: user.id,
+            name: user.name,
+            role: user.role
+        }
+
+    } catch (err) {
+        logger.warn(`Authentication failed: ${err?.message || err}`)
+        return reply.code(401).send({ message: 'Invalid token' })
     }
 }
 

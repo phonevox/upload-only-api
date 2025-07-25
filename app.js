@@ -8,7 +8,7 @@ fastify.register(uploadRoutes, {prefix: '/v1'});
 fastify.register(userRoutes, {prefix: '/v1'});
 
 // fastify
-fastify.listen({ port: parseInt(process.env.FASTIFY_PORT || 3000) , host: '0.0.0.0' }, (err, address) => {
+fastify.listen({ port: process.env.FASTIFY_PORT || 3000 , host: '0.0.0.0' }, (err, address) => {
     const logger = logging.getLogger(process.env.LOGGING_BASE_NAME);
     logger.addTransport(new logging.transports.Console({ level: logging.UNIT }))
     logger.addTransport(new logging.transports.FileRotate({

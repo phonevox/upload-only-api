@@ -2,3 +2,5 @@ node_modules
 *.sqlite
 *.db
 data
+.pnpm-store
+src/prisma/db/*

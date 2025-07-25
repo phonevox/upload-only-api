@@ -3,14 +3,14 @@ import { logging } from '../../utils/logging/index.js'
 
 const logger = logging.getLogger(process.env.LOGGING_BASE_NAME + '.utils.jwt')
 
-export const verifyToken = async (token) => {
+export const verifyToken = (token) => {
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET)
         logger.unit('Token válido.')
-        return true
+        return decoded
     } catch (error) {
         logger.error('Erro ao verificar token:', error)
-        throw error
+        throw new Error('Token inválido')
     }
 }
 
