@@ -64,7 +64,7 @@ curl -X POST http://127.0.0.1:3000/v1/upload \
   -F "path=/pasta/no/drive"
 ```
 
-```
+```http
 HTTP/1.1 200 OK
 Content-Type: application/json
 
