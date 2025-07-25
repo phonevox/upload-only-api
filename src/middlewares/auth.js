@@ -19,16 +19,15 @@ export async function requireAuth(req, reply) {
 
         // Busca o usuário no banco
         const user = await prisma.user.findUnique({ where: { token } })
-
         if (!user) {
-            logger.warn('User not found in database')
-            return reply.code(401).send({ message: 'Invalid token' })
+            throw new Error('User not found in database')
         }
+        // logger.warn(`User authenticated: ${user.username}`)
 
         // Anexa o usuário à requisição
         req.user = {
             id: user.id,
-            name: user.name,
+            username: user.username,
             role: user.role
         }
 

@@ -13,8 +13,11 @@ export async function registerUser(req, res) {
         return res.status(400).send({ error: formatted });
     }
 
+    req.logger.debug('validatedData ' + JSON.stringify(validatedData));
+
     const username = validatedData.username;
     const password = validatedData.password;
+    const root_path = validatedData.root_path;
     const email = validatedData.email ?? null;
     const role = validatedData.role ?? 'user';
 
@@ -34,9 +37,12 @@ export async function registerUser(req, res) {
             email,
             password: hashedPassword,
             role,
+            root_path: root_path,
             token
         }
     });
+
+    req.logger.trace("Root path is: " + user.root_path);
 
     return res.status(201).send({
         username: user.username,
@@ -92,7 +98,7 @@ export async function updateUser(req, res) {
         return res.status(400).send({ error: formatted });
     }
 
-    const { username, password, email, role } = validatedData;
+    const { username, password, email, role, root_path } = validatedData;
 
     if (username !== req.params.username) {
         return res.status(400).send({ error: "Username cannot be changed." });
@@ -106,6 +112,7 @@ export async function updateUser(req, res) {
     const updateData = {};
     if (email !== undefined) updateData.email = email;
     if (role !== undefined) updateData.role = role;
+    if (root_path !== undefined) updateData.root_path = root_path;
     if (password !== undefined) updateData.password = await generateHash(password);
 
     const updatedUser = await prisma.user.update({
@@ -118,6 +125,7 @@ export async function updateUser(req, res) {
         username: updatedUser.username,
         email: updatedUser.email,
         role: updatedUser.role,
+        root_path: updatedUser.root_path,
         token: updatedUser.token,
     });
 }
@@ -141,5 +149,8 @@ export async function deleteUser(req, res) {
     }
 
     await prisma.user.delete({ where: { username } });
+
+    req.logger.warn(`User '${username}' deleted by user ${req.user.username} (${req.user.role})");`);    
+
     return res.status(204).send({ message: "User deleted successfully." });
 }

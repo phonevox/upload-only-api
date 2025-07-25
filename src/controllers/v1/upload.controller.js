@@ -1,5 +1,6 @@
 import { uploadSchema } from "../../schemas/v1/upload.schema.js";
 import { testUpload } from "../../services/v1/upload.service.js";
+import { prisma } from "../../prisma/client.js";
 
 export async function uploadFile(req, res) {
     if (!req.isMultipart()) {
@@ -43,7 +44,7 @@ export async function uploadFile(req, res) {
       return res.status(400).send({ error: 'No file uploaded' });
     }
   
-    const path = fields.path;
+    let path = fields.path;
     if (!path) {
       return res.status(400).send({ error: 'Missing path field' });
     }
@@ -51,6 +52,17 @@ export async function uploadFile(req, res) {
     req.logger.trace(`File received: "${fileData.filename}"`);
     req.logger.trace(`Buffer length: ${fileData.buffer.length}`);
   
+    // check for user root
+    req.logger.trace("Username: " + req.user.username);
+    const user = await prisma.user.findUnique({ where: { username: req.user.username } });
+    if (user.root_path) {
+      req.logger.trace(`User root path: ${user.root_path}`);
+      path = user.root_path + path;
+    } else {
+      req.logger.debug(`User root path not found for '${req.user.username}'`);
+    }
+    req.logger.debug(`Prepared upload path: ${path}`);
+
     const result = await testUpload(fileData.buffer, fileData.filename, path);
   
     return res.send({ message: 'File uploaded', result: result });
