@@ -39,7 +39,7 @@ POST http://127.0.0.1:3000/v1/user/login
 Content-Type: application/json
 
 {
-  "username": "admin",
+  "username": "root",
   "password": "senha_definida_no_env"
 }
 ```
