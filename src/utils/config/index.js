@@ -5,7 +5,8 @@ import { logging } from '../logging/index.js'
 
 // initialization
 const fastify = Fastify({
-    logger: false
+    logger: false,
+    bodyLimit: parseInt(process.env.FASTIFY_BODY_LIMIT_MB || 500) * 1024 * 1024
 })
 
 // cors
