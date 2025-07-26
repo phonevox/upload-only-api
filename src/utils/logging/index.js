@@ -38,10 +38,10 @@ const shutup = new winston.transports.Console({
 })
 
 class EasyConsole {
-    constructor(options = { level: 'debug' }) {
+    constructor(options = { level: 'debug', timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }) {
         this.name = "EasyConsole";
         this.padding = 8;
-        this.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        this.timezone = options.timezone;
         this.level = options.level;
     }
 
@@ -65,10 +65,10 @@ class EasyConsole {
 }
 
 class EasyFileRotate {
-    constructor(options = { filename: undefined, maxSize: undefined, maxFiles: undefined, level: 'debug' }) {
+    constructor(options = { filename: undefined, maxSize: undefined, maxFiles: undefined, level: 'debug', timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }) {
         this.name = "EasyFileRotate";
         this.padding = 8;
-        this.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        this.timezone = options.timezone;
         this.filename = options.filename;
         this.maxSize = options.maxSize;
         this.maxFiles = options.maxFiles;
