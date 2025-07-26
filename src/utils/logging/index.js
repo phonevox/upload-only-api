@@ -1,6 +1,7 @@
 // https://github.com/adriankubinyete/logging-js
 import winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
+import moment from 'moment-timezone';
 
 const LEVELS = {
     critical: { level: 0, color: "bold red blackBG", ansi: "\x1b[1m"  },
@@ -50,7 +51,9 @@ class EasyConsole {
             level: this.level,
             format: winston.format.combine(
                 winston.format.label({ label: name }),
-                winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS', tz: Intl.DateTimeFormat().resolvedOptions().timeZone }),
+                winston.format.timestamp({
+                    format: () => moment().tz(this.timezone).format('YYYY-MM-DD HH:mm:ss.SSS')
+                }),
                 winston.format.printf(info => {
                     const { timestamp, level, message, label } = info;
                     const color = getAnsiColor(LEVELS[level]?.color || "");
@@ -86,7 +89,9 @@ class EasyFileRotate {
             format: winston.format.combine(
                 winston.format.uncolorize(),
                 winston.format.label({ label: name }),
-                winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS', tz: Intl.DateTimeFormat().resolvedOptions().timeZone }),
+                winston.format.timestamp({
+                    format: () => moment().tz(this.timezone).format('YYYY-MM-DD HH:mm:ss.SSS')
+                }),
                 winston.format.printf(({ level, message, label, timestamp }) => {
                     const paddedLevel = level.padEnd(this.padding, ' ').toUpperCase();
                     return `[${timestamp}] [${paddedLevel}] ${label}: ${message}`;
@@ -103,7 +108,6 @@ class Logger {
         this.transports = [];
         this.prefix = undefined;
         this.children = undefined;
-        this.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
         this.padding = 8
 
         this.winston = winston.createLogger({
