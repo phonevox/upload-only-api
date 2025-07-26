@@ -56,8 +56,12 @@ fastify.addHook('onRequest', (request, reply, done) => {
         params: request.params,
     }
     request.logger = logging.getLogger(process.env.LOGGING_BASE_NAME + '.[' + remoteAddress + ':' + logData.method + ':' + logData.url +']')
-    request.logger.info('Request received')
-    // request.logger.trace(logData)
+    
+    if (process.env.FASTIFY_LOG_EVERY_REQUEST_DATA === 'true') {
+        request.logger.info(JSON.stringify(logData))
+    } else {
+        request.logger.info('Request received')
+    }
     done();
 })
 
