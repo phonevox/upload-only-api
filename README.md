@@ -29,13 +29,13 @@ Para o upload, é necessário estar autenticado com o token de um usuário. Por 
 
 1. **Autenticação**
 
-Faça um `POST` para `/v1/user/login` com o JSON contendo usuário e senha para obter o token do usuário:
+Faça um `POST` para `/v1/users/login` com o JSON contendo usuário e senha para obter o token do usuário:
 > ⚠️ Quando o banco é criado na primeira vez, é gerado um usuário root, com senha definida pelo que está na variável `DATABASE_ROOT_PASSWORD`. Caso o banco já exista, por questão de segurança essa senha não será respeitada. Recomenda-se a remoção do banco de dados, e reconstrução do contêiner, ou correção manual.
 
 > A partir de um usuário inicial com permissão ADMIN ou SUPERADMIN, é possível criar outros novos usuários no endpoint de registro.
 
 ```http
-POST http://127.0.0.1:3000/v1/user/login
+POST http://127.0.0.1:3000/v1/users/login
 Content-Type: application/json
 
 {
