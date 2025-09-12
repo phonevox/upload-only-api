@@ -154,3 +154,17 @@ export async function deleteUser(req, res) {
 
     return res.status(204).send({ message: "User deleted successfully." });
 }
+
+export async function listUsers(req, res) {
+    req.logger.debug(`User ${req.user.username} (${req.user.role}) is requesting list of users`);
+    const users = await prisma.user.findMany({
+        select: {
+            id: true,
+            username: true,
+            email: true,
+            role: true,
+            root_path: true,
+        }
+    });
+    return res.status(200).send({data: users});
+}
