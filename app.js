@@ -3,7 +3,7 @@ import { logging } from './src/utils/logging/index.js';
 import fastify from './src/utils/config/index.js';
 
 import uploadRoutes from "./src/routes/v1/upload.routes.js";
-import userRoutes from "./src/routes/v1/user.routes.js";
+import userRoutes from "./src/routes/v1/users.routes.js";
 fastify.register(uploadRoutes, {prefix: '/v1'});
 fastify.register(userRoutes, {prefix: '/v1'});
 
