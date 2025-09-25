@@ -15,7 +15,6 @@ export async function uploadFile(req, res) {
   let tmpFilePath = null;
   let filename = null;
 
-  // pasta de uploads configurável via env
   const uploadDir = process.env.TMP_UPLOAD_DIR
     ? path.resolve(process.env.TMP_UPLOAD_DIR)
     : path.join(process.cwd(), "uploads");
@@ -34,13 +33,21 @@ export async function uploadFile(req, res) {
         }
 
         filename = part.filename;
-        tmpFilePath = path.join(uploadDir, filename + ".tmp"); // salva temporário
+        tmpFilePath = path.join(uploadDir, filename + ".tmp");
 
         const writeStream = fs.createWriteStream(tmpFilePath);
         let uploaded = 0;
         const total = Number(req.headers["content-length"]) || null;
+        let uploadCompleted = false;
 
         await new Promise((resolve, reject) => {
+          const cleanup = () => {
+            if (!uploadCompleted && fs.existsSync(tmpFilePath)) {
+              fs.unlinkSync(tmpFilePath);
+              req.logger.debug(`Partial file removed due to abort: ${tmpFilePath}`);
+            }
+          };
+
           part.file.on("data", (chunk) => {
             uploaded += chunk.length;
             if (total) {
@@ -55,19 +62,20 @@ export async function uploadFile(req, res) {
 
           part.file.on("end", () => {
             req.logger.debug("File received (stream end)");
+            uploadCompleted = true;
           });
 
-          // se erro, remove arquivo parcial
-          const cleanup = (err) => {
-            if (fs.existsSync(tmpFilePath)) {
-              fs.unlinkSync(tmpFilePath);
-              req.logger.debug(`Partial file removed: ${tmpFilePath}`);
-            }
+          part.file.on("error", (err) => {
+            cleanup();
             reject(err);
-          };
+          });
+          part.file.on("close", cleanup);
 
-          part.file.on("error", cleanup);
-          writeStream.on("error", cleanup);
+          writeStream.on("error", (err) => {
+            cleanup();
+            reject(err);
+          });
+          writeStream.on("close", cleanup);
           writeStream.on("finish", resolve);
 
           part.file.pipe(writeStream);
@@ -90,11 +98,8 @@ export async function uploadFile(req, res) {
     return res.status(400).send({ error: "Missing path field" });
   }
 
-  // check user root
   req.logger.trace("Username: " + req.user.username);
-  const user = await prisma.user.findUnique({
-    where: { username: req.user.username },
-  });
+  const user = await prisma.user.findUnique({ where: { username: req.user.username } });
   if (user.root_path) {
     req.logger.trace(`User root path: ${user.root_path}`);
     uploadPath = user.root_path + uploadPath;
@@ -107,7 +112,7 @@ export async function uploadFile(req, res) {
   const buffer = fs.readFileSync(tmpFilePath);
   const result = await testUpload(buffer, filename, uploadPath);
 
-  // renomeia ou remove arquivo temporário
+  // remove arquivo temporário após sucesso
   try {
     fs.unlinkSync(tmpFilePath);
     req.logger.debug(`Temporary file removed: ${tmpFilePath}`);
