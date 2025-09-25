@@ -12,10 +12,10 @@ export async function uploadFile(req, res) {
   const parts = req.parts();
   let fileCount = 0;
   const fields = {};
-  let filePath = null;
+  let tmpFilePath = null;
   let filename = null;
 
-  // define pasta de uploads relativa ao projeto
+  // pasta de uploads configurável via env
   const uploadDir = process.env.TMP_UPLOAD_DIR
     ? path.resolve(process.env.TMP_UPLOAD_DIR)
     : path.join(process.cwd(), "uploads");
@@ -29,18 +29,15 @@ export async function uploadFile(req, res) {
       if (part.file) {
         fileCount++;
         if (fileCount > 1) {
-          // descarta arquivos extras
           await part.toBuffer();
           throw new Error("Expected single file, but multiple files uploaded");
         }
 
         filename = part.filename;
-        filePath = path.join(uploadDir, filename);
+        tmpFilePath = path.join(uploadDir, filename + ".tmp"); // salva temporário
 
-        const writeStream = fs.createWriteStream(filePath);
-
+        const writeStream = fs.createWriteStream(tmpFilePath);
         let uploaded = 0;
-        req.logger.debug(`Receiving file: ${filename}`);
         const total = Number(req.headers["content-length"]) || null;
 
         await new Promise((resolve, reject) => {
@@ -49,7 +46,7 @@ export async function uploadFile(req, res) {
             if (total) {
               const percent = ((uploaded / total) * 100).toFixed(2);
               req.logger.debug(
-                `Progress: ${uploaded}/${total} bytes (chunk size: ${chunk.length}B) (${percent}%) `
+                `Progress: ${uploaded}/${total} bytes (chunk: ${chunk.length}B) (${percent}%)`
               );
             } else {
               req.logger.debug(`Progress: ${uploaded} bytes`);
@@ -60,8 +57,17 @@ export async function uploadFile(req, res) {
             req.logger.debug("File received (stream end)");
           });
 
-          part.file.on("error", reject);
-          writeStream.on("error", reject);
+          // se erro, remove arquivo parcial
+          const cleanup = (err) => {
+            if (fs.existsSync(tmpFilePath)) {
+              fs.unlinkSync(tmpFilePath);
+              req.logger.debug(`Partial file removed: ${tmpFilePath}`);
+            }
+            reject(err);
+          };
+
+          part.file.on("error", cleanup);
+          writeStream.on("error", cleanup);
           writeStream.on("finish", resolve);
 
           part.file.pipe(writeStream);
@@ -97,16 +103,16 @@ export async function uploadFile(req, res) {
   }
   req.logger.debug(`Prepared upload path: ${uploadPath}`);
 
-  // lê arquivo do uploads e envia para testUpload
-  const buffer = fs.readFileSync(filePath);
+  // lê arquivo temporário e envia para testUpload
+  const buffer = fs.readFileSync(tmpFilePath);
   const result = await testUpload(buffer, filename, uploadPath);
 
-  // remove arquivo temporário
+  // renomeia ou remove arquivo temporário
   try {
-    fs.unlinkSync(filePath);
-    req.logger.debug(`Temporary file removed: ${filePath}`);
+    fs.unlinkSync(tmpFilePath);
+    req.logger.debug(`Temporary file removed: ${tmpFilePath}`);
   } catch (err) {
-    req.logger.warn(`Failed to remove temporary file: ${filePath} - ${err.message}`);
+    req.logger.warn(`Failed to remove temporary file: ${tmpFilePath} - ${err.message}`);
   }
 
   return res.send({ message: "File uploaded", result });
