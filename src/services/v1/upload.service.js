@@ -1,5 +1,4 @@
 import { google } from 'googleapis';
-import { PassThrough } from 'stream';
 import { logging } from '../../utils/logging/index.js'
 
 const logger = logging.getLogger(process.env.LOGGING_BASE_NAME + '.services.v1.upload.service')
@@ -19,13 +18,7 @@ const drive = google.drive({
     auth: oauth2Client
 })
 
-function generateStreamFromBuffer(buffer) {
-    const stream = new PassThrough();
-    stream.end(buffer);
-    return stream;
-}
-
-export async function uploadToDrive(buffer, filename, path) {
+export async function uploadToDrive(fileStream, filename, path) {
     const rootFolderId = process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID || 'root';
 
     // Função auxiliar para buscar/criar pasta no Drive pelo nome e parentId
@@ -70,7 +63,7 @@ export async function uploadToDrive(buffer, filename, path) {
         },
         media: {
             mimeType: 'application/octet-stream',
-            body: generateStreamFromBuffer(buffer),
+            body: fileStream,
         },
         fields: 'id, name',
     });
@@ -78,9 +71,9 @@ export async function uploadToDrive(buffer, filename, path) {
     return response.data; // id, name etc
 }
 
-export async function testUpload(buffer, filename, path) {
+export async function testUpload(fileStream, filename, path) {
     logger.info(`Uploading '${filename}' to '${path}'`)
-    const result = await uploadToDrive(buffer, filename, path);
+    const result = await uploadToDrive(fileStream, filename, path);
     logger.debug(`Uploaded '${result.name}', id '${result.id}'`);
     logger.trace(result)
 
