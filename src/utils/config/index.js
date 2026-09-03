@@ -35,9 +35,9 @@ await fastify.register(helmet, {
 // add content type parser for json
 fastify.removeAllContentTypeParsers()
 fastify.addContentTypeParser('application/json', { parseAs: 'string' }, (req, body, done) => {
+    if (!body) return done(null, null)
     try {
-        const json = JSON.parse(body)
-        done(null, json)
+        done(null, JSON.parse(body))
     } catch (err) {
         done(err)
     }
