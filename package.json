@@ -17,6 +17,7 @@
     "fastify": "^5.3.2",
     "googleapis": "^154.0.0",
     "jsonwebtoken": "^9.0.2",
+    "kafkajs": "^2.2.4",
     "moment-timezone": "^0.6.0",
     "node-cache": "^5.1.2",
     "winston": "^3.17.0",

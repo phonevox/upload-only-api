@@ -4,6 +4,7 @@ import crypto from "crypto";
 import { pipeline } from "stream/promises";
 import { prisma } from "../../prisma/client.js";
 import { testUpload } from "../../services/v1/upload.service.js";
+import { publishEvent } from "../../utils/events/index.js";
 
 export async function uploadFile(req, res) {
   if (!req.isMultipart()) {
@@ -91,7 +92,11 @@ export async function uploadFile(req, res) {
     }
     req.logger.debug(`Prepared upload path: ${uploadPath}`);
 
+    publishEvent("upload.started", { username: req.user.username, filename, path: uploadPath });
+
     const result = await testUpload(fs.createReadStream(tmpFilePath), filename, uploadPath);
+
+    publishEvent("upload.completed", { username: req.user.username, filename, path: uploadPath, result });
 
     // cleaned up before responding so the temp file is guaranteed gone by the time
     // the client sees a 200 (fastify can finish sending the reply before code after

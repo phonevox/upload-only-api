@@ -2,6 +2,7 @@ import { registerUserSchema, loginUserSchema, updateUserSchema, deleteUserSchema
 import { generateHash, comparePassword } from "../../utils/bcrypt/index.js";
 import { tokenify, verifyToken } from "../../utils/jwt/index.js";
 import { prisma } from "../../prisma/client.js";
+import { publishEvent } from "../../utils/events/index.js";
 
 export async function registerUser(req, res) {
     let validatedData;
@@ -44,6 +45,8 @@ export async function registerUser(req, res) {
 
     req.logger.trace("Root path is: " + user.root_path);
 
+    publishEvent("user.registered", { username: user.username, role: user.role });
+
     return res.status(201).send({
         username: user.username,
         role: user.role,
@@ -81,6 +84,8 @@ export async function loginUser(req, res) {
         where: { username },
         data: { token }
     });
+
+    publishEvent("user.login", { username, role: user.role });
 
     return res.status(200).send({
         token: token
