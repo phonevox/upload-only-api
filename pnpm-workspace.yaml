@@ -4,3 +4,6 @@ onlyBuiltDependencies:
   - bcrypt
   - esbuild
   - prisma
+
+patchedDependencies:
+  buffer-equal-constant-time@1.0.1: patches/buffer-equal-constant-time@1.0.1.patch
