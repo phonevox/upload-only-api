@@ -1,3 +1,4 @@
+import "./src/utils/jwt/buffer-polyfill.js";
 import "dotenv/config";
 import { logging } from './src/utils/logging/index.js';
 import fastify from './src/utils/config/index.js';

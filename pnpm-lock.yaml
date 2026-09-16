@@ -4,11 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-patchedDependencies:
-  buffer-equal-constant-time@1.0.1:
-    hash: 7de836b4d813606ee9498c3c114f0245196d3554db3cf635e961c07a83b981cb
-    path: patches/buffer-equal-constant-time@1.0.1.patch
-
 importers:
 
   .:
@@ -1777,7 +1772,7 @@ snapshots:
       balanced-match: 1.0.2
       concat-map: 0.0.1
 
-  buffer-equal-constant-time@1.0.1(patch_hash=7de836b4d813606ee9498c3c114f0245196d3554db3cf635e961c07a83b981cb): {}
+  buffer-equal-constant-time@1.0.1: {}
 
   call-bind-apply-helpers@1.0.2:
     dependencies:
@@ -2151,13 +2146,13 @@ snapshots:
 
   jwa@1.4.1:
     dependencies:
-      buffer-equal-constant-time: 1.0.1(patch_hash=7de836b4d813606ee9498c3c114f0245196d3554db3cf635e961c07a83b981cb)
+      buffer-equal-constant-time: 1.0.1
       ecdsa-sig-formatter: 1.0.11
       safe-buffer: 5.2.1
 
   jwa@2.0.1:
     dependencies:
-      buffer-equal-constant-time: 1.0.1(patch_hash=7de836b4d813606ee9498c3c114f0245196d3554db3cf635e961c07a83b981cb)
+      buffer-equal-constant-time: 1.0.1
       ecdsa-sig-formatter: 1.0.11
       safe-buffer: 5.2.1
 

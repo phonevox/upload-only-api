@@ -1,3 +1,4 @@
+import './buffer-polyfill.js'
 import jwt from 'jsonwebtoken'
 import { logging } from '../../utils/logging/index.js'
 
