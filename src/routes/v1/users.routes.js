@@ -1,4 +1,4 @@
-import { registerUser, loginUser, updateUser, deleteUser, listUsers } from "../../controllers/v1/users.controller.js";
+import { registerUser, loginUser, updateUser, deleteUser, listUsers, getMe } from "../../controllers/v1/users.controller.js";
 import { requireAuth, requireRole } from "../../middlewares/auth.js";
 import { Roles } from "../../enums/index.js";
 
@@ -7,6 +7,8 @@ export default async function userRoutes(fastify, opts) {
         onRequest: [requireAuth, requireRole(Roles.ADMIN, Roles.SUPERADMIN)],
         handler: listUsers
     })
+
+    fastify.get('/users/me', { onRequest: [requireAuth], handler: getMe })
 
     fastify.post('/users/login', loginUser)
 
