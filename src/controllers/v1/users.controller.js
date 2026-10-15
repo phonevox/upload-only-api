@@ -173,3 +173,7 @@ export async function listUsers(req, res) {
     });
     return res.status(200).send({data: users});
 }
+
+export async function getMe(req, res) {
+    return res.status(200).send(req.user);
+}
